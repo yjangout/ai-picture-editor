@@ -9,7 +9,7 @@ from app.models import Asset, ToolRun
 from app.models.tool_run import RunStatus
 from app.providers import ProviderError
 from app.queue import enqueue
-from app.services import assets, runs, sessions
+from app.services import assets, credits, runs, sessions
 from app.tools import UnknownTool, spec_of
 from app.tools.context import ToolError
 
@@ -42,7 +42,22 @@ async def submit(
     if spec.session_required and session_id is None:
         raise InvalidParams("此工具需要在编辑会话中使用")
 
-    run = await runs.create(session, user_id, tool, validate(tool, params), session_id)
+    params = validate(tool, params)
+    cost = credits.cost_of(tool, params)
+    await credits.require_balance(session, user_id, cost)
+    run = await runs.create(session, user_id, tool, params, session_id)
+    run.credits_charged = cost
+    if cost:
+        await credits.consume(
+            session,
+            user_id,
+            cost,
+            reason=f"{spec.label}消耗",
+            ref_type="tool_run",
+            ref_id=run.id,
+        )
+    await session.commit()
+    await session.refresh(run)
     if spec.queued:
         await enqueue(TASK, run.id)
     else:
@@ -60,10 +75,12 @@ async def execute(session: AsyncSession, run: ToolRun) -> None:
         await _record(session, run, result)
     except (ProviderError, UnknownTool, ToolError) as exc:
         await runs.finish(session, run, status=RunStatus.FAILED, error=str(exc))
+        await credits.refund_run(session, run)
     except Exception:
         logger.exception("工具执行异常 tool=%s run_id=%s", run.tool, run.id)
         await session.rollback()
         await runs.finish(session, run, status=RunStatus.FAILED, error="执行失败，请重试")
+        await credits.refund_run(session, run)
     else:
         await runs.finish(session, run, status=RunStatus.SUCCEEDED, result=result)
 

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { agentApi } from '@/api/agent'
 import { isTerminal } from '@/api/runs'
+import { refreshWallet } from '@/hooks/useAuth'
 
 const turnsKey = (sessionId: string) => ['session', sessionId, 'messages']
 
@@ -12,6 +13,7 @@ function useRefreshTurn(sessionId: string) {
     void queryClient.invalidateQueries({ queryKey: turnsKey(sessionId) })
     void queryClient.invalidateQueries({ queryKey: ['session', sessionId] })
     void queryClient.invalidateQueries({ queryKey: ['session', sessionId, 'history'] })
+    refreshWallet(queryClient)
   }
 }
 

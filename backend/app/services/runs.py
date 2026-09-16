@@ -35,8 +35,7 @@ async def create(
         user_id=user_id, session_id=session_id, tool=tool, params=params, stage="等待开始"
     )
     session.add(run)
-    await session.commit()
-    await session.refresh(run)
+    await session.flush()
     return run
 
 

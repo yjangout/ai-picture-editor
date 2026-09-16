@@ -62,6 +62,40 @@ export default function WorkbenchLayout() {
           </ul>
 
           <div className="border-line mt-2 border-t px-2 pt-3">
+            <NavLink
+              to="/credits"
+              title={`积分 ${user?.credits ?? 0}`}
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm transition-colors ${
+                  isActive
+                    ? 'bg-brand-soft text-brand-strong font-medium'
+                    : 'text-muted hover:bg-soft hover:text-ink'
+                }`
+              }
+            >
+              <NavIcon path="M12 3a9 9 0 1 0 9 9h-3a6 6 0 1 1-6-6V3z" />
+              <span className="truncate opacity-0 transition-opacity group-hover:opacity-100">
+                {user?.credits ?? 0} 积分
+              </span>
+            </NavLink>
+            {user?.role === 'admin' && (
+              <NavLink
+                to="/admin"
+                title="管理平台"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm transition-colors ${
+                    isActive
+                      ? 'bg-brand-soft text-brand-strong font-medium'
+                      : 'text-muted hover:bg-soft hover:text-ink'
+                  }`
+                }
+              >
+                <NavIcon path="M4 7h16M4 12h16M4 17h10" />
+                <span className="truncate opacity-0 transition-opacity group-hover:opacity-100">
+                  管理
+                </span>
+              </NavLink>
+            )}
             <button
               type="button"
               onClick={signOut}

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { batchesApi, type BatchInput } from '@/api/batches'
 import { isTerminal } from '@/api/runs'
-import { errorMessage } from '@/hooks/useAuth'
+import { errorMessage, refreshWallet } from '@/hooks/useAuth'
 import { useRun } from '@/hooks/useRun'
 import { toast } from '@/stores/toasts'
 
@@ -40,6 +40,7 @@ export function useCreateBatch() {
     onSuccess: (run) => {
       void queryClient.invalidateQueries({ queryKey: LIST_KEY })
       queryClient.setQueryData(batchKey(run.id), undefined)
+      refreshWallet(queryClient)
     },
     onError: (error) => toast(errorMessage(error), 'danger'),
   })

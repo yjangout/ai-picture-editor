@@ -43,6 +43,20 @@ class Settings(BaseSettings):
     # auto：有 rapidocr 则识别文字层；none 跳过；测试强制 none
     ocr_provider: str = "auto"
 
+    # 积分：注册赠送、模型操作单价、模拟充值套餐。0 表示关闭对应项。
+    credit_signup_bonus: int = 100
+    credit_cost_generate: int = 10
+    credit_cost_edit: int = 8
+    credit_cost_upscale: int = 6
+    credit_cost_marketing: int = 10
+    credit_pack_starter: int = 50
+    credit_pack_standard: int = 200
+    credit_pack_pro: int = 500
+
+    # 启动时确保该账号为管理员；用户名或密码为空则跳过
+    bootstrap_admin_username: str = "admin"
+    bootstrap_admin_password: str = "admin123"
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

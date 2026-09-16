@@ -2,13 +2,16 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import storage
 from app.config import get_settings
 from app.queue import close_queue
-from app.routers import assets, auth, batches, events, health, runs, sessions
+from app.routers import admin, assets, auth, batches, credits, events, health, runs, sessions
+from app.services.auth import ensure_bootstrap_admin
+from app.services.credits import InsufficientCredits
 
 settings = get_settings()
 
@@ -16,6 +19,7 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await asyncio.to_thread(storage.ensure_bucket)
+    await ensure_bootstrap_admin()
     yield
     await close_queue()
 
@@ -27,9 +31,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(InsufficientCredits)
+async def _insufficient_credits(_: Request, exc: InsufficientCredits) -> JSONResponse:
+    return JSONResponse(status_code=402, content={"detail": str(exc)})
+
+
 api = APIRouter(prefix="/api")
 api.include_router(health.router)
 api.include_router(auth.router)
+api.include_router(credits.router)
+api.include_router(admin.router)
 api.include_router(assets.router)
 api.include_router(runs.router)
 api.include_router(sessions.router)

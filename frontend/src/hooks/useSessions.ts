@@ -8,7 +8,7 @@ import {
   type SessionDetail,
   type SessionPatchInput,
 } from '@/api/sessions'
-import { errorMessage } from '@/hooks/useAuth'
+import { errorMessage, refreshWallet } from '@/hooks/useAuth'
 import { useRun } from '@/hooks/useRun'
 import { offersUndo, toolLabel } from '@/lib/tools'
 import { toast } from '@/stores/toasts'
@@ -83,6 +83,7 @@ export function useSessionTools(id: string) {
       sessionsApi.invoke(id, tool, params),
     onSuccess: (body) => {
       cache(body.session)
+      refreshWallet(queryClient)
       if (!isTerminal(body.run.status)) setPendingRunId(body.run.id)
     },
     onError: (error) => toast(errorMessage(error), 'danger'),

@@ -1,11 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
+import RequireAdmin from '@/layouts/RequireAdmin'
 import RequireAuth from '@/layouts/RequireAuth'
 import WorkbenchLayout from '@/layouts/WorkbenchLayout'
+import AdminPage from '@/pages/AdminPage'
 import AuthPage from '@/pages/AuthPage'
 import BatchPage from '@/pages/BatchPage'
 import CandidatesPage from '@/pages/CandidatesPage'
 import CreatePage from '@/pages/CreatePage'
+import CreditsPage from '@/pages/CreditsPage'
 import EditorPage from '@/pages/EditorPage'
 import LandingPage from '@/pages/LandingPage'
 import MarketingPage from '@/pages/MarketingPage'
@@ -27,6 +30,10 @@ export default function App() {
             <Route path="/batch" element={<BatchPage />} />
             <Route path="/batch/:runId" element={<BatchPage />} />
             <Route path="/candidates/:runId" element={<CandidatesPage />} />
+            <Route path="/credits" element={<CreditsPage />} />
+            <Route element={<RequireAdmin />}>
+              <Route path="/admin" element={<AdminPage />} />
+            </Route>
           </Route>
         </Route>
 

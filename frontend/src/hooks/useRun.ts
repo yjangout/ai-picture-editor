@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { isTerminal, runsApi, type GenerateInput, type Run, type RunStatus } from '@/api/runs'
+import { refreshWallet } from '@/hooks/useAuth'
 import { useSmoothedProgress } from '@/hooks/useSmoothedProgress'
 
 type Progress = Pick<Run, 'id' | 'tool' | 'status' | 'progress' | 'stage' | 'error' | 'result'>
@@ -9,7 +10,11 @@ type Progress = Pick<Run, 'id' | 'tool' | 'status' | 'progress' | 'stage' | 'err
 const runKey = (id: string) => ['run', id]
 
 export function useGenerate() {
-  return useMutation({ mutationFn: (input: GenerateInput) => runsApi.generate(input) })
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: GenerateInput) => runsApi.generate(input),
+    onSuccess: () => refreshWallet(queryClient),
+  })
 }
 
 /**
@@ -38,6 +43,7 @@ export function useRun(runId: string | null) {
       if (isTerminal(payload.status)) {
         source.close()
         void queryClient.invalidateQueries({ queryKey: runKey(runId) })
+        refreshWallet(queryClient)
       }
     }
 

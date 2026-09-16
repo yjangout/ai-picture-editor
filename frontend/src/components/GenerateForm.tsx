@@ -9,10 +9,12 @@ export default function GenerateForm({
   onSubmit,
   pending,
   defaultPrompt = '',
+  costPerImage,
 }: {
   onSubmit: (input: GenerateInput) => void
   pending: boolean
   defaultPrompt?: string
+  costPerImage?: number
 }) {
   const [prompt, setPrompt] = useState(defaultPrompt)
   const [ratio, setRatio] = useState<Ratio>('1:1')
@@ -21,6 +23,7 @@ export default function GenerateForm({
   const [advanced, setAdvanced] = useState(false)
 
   const canSubmit = prompt.trim().length > 0 && !pending
+  const cost = costPerImage != null ? costPerImage * count : null
 
   return (
     <form
@@ -78,7 +81,7 @@ export default function GenerateForm({
           disabled={!canSubmit}
           className="bg-ink hover:bg-dark rounded-control ml-auto px-4 py-2 text-sm font-medium text-white transition-all duration-150 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
         >
-          {pending ? '提交中…' : '生成'}
+          {pending ? '提交中…' : cost != null ? `生成 · ${cost} 积分` : '生成'}
         </button>
       </div>
       <p className="text-faint px-3 pb-2 text-[11px]">
