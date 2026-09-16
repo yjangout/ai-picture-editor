@@ -7,7 +7,13 @@ from sqlalchemy import func, select
 from app.db import SessionDep
 from app.deps import CurrentAdmin
 from app.models import CreditKind, CreditLedger, User, UserRole
-from app.schemas.admin import AdminLedgerListOut, AdminUserListOut, AdminUserOut, RoleIn, admin_user_out
+from app.schemas.admin import (
+    AdminLedgerListOut,
+    AdminUserListOut,
+    AdminUserOut,
+    RoleIn,
+    admin_user_out,
+)
 from app.schemas.credits import GiftIn, LedgerOut
 from app.services import credits
 

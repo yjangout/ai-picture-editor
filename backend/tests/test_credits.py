@@ -134,4 +134,5 @@ async def test_ledger_is_isolated_per_user(
 
 async def test_catalog_requires_login(client: httpx.AsyncClient):
     assert (await client.get("/api/credits/catalog")).status_code == 401
-    assert (await client.post("/api/credits/recharge", json={"pack_id": "starter"})).status_code == 401
+    recharge = await client.post("/api/credits/recharge", json={"pack_id": "starter"})
+    assert recharge.status_code == 401
