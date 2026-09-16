@@ -10,7 +10,8 @@ from app.agent import plan as plan_mod
 from app.layers import Layer, LayerDocument, LayerKind
 from app.models import AgentRun, EditSession, ToolRun
 from app.models.tool_run import RunStatus
-from app.services import assets, runs, selections, tools
+from app.services import assets, credits, runs, selections, tools
+from app.services.credits import InsufficientCredits
 from app.tools import spec_of
 
 logger = logging.getLogger(__name__)
@@ -210,9 +211,17 @@ async def _advance(session: AsyncSession, turn: AgentRun) -> AgentRun:
             if spec_of(step["tool"]).needs_approval and not step.get("approved"):
                 step["status"] = plan_mod.WAITING
                 continue
-            run = await tools.submit(
-                session, turn.user_id, step["tool"], step["params"], turn.session_id
-            )
+            try:
+                run = await tools.submit(
+                    session, turn.user_id, step["tool"], step["params"], turn.session_id
+                )
+            except InsufficientCredits as exc:
+                step["status"] = plan_mod.FAILED
+                turn.plan = steps
+                turn.error = str(exc)
+                _touch(turn)
+                progressed = False
+                break
             step["run_id"] = str(run.id)
             step["status"] = run.status.value
             turn.plan = steps
@@ -240,6 +249,7 @@ async def _cancel_queued_runs(session: AsyncSession, steps: list[dict]) -> None:
         if run is None or run.status is not RunStatus.QUEUED:
             continue
         await runs.finish(session, run, status=RunStatus.CANCELED, error="已取消")
+        await credits.refund_run(session, run)
         step["status"] = plan_mod.CANCELED
 
 

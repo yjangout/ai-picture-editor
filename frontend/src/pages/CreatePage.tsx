@@ -1,10 +1,12 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import AssetLibrary from '@/components/AssetLibrary'
 import GenerateForm from '@/components/GenerateForm'
 import ImageDropzone from '@/components/ImageDropzone'
+import { ApiError } from '@/api/client'
 import { errorMessage } from '@/hooks/useAuth'
 import { useAssetLibrary, useUploadAsset } from '@/hooks/useAssets'
+import { useCreditCatalog } from '@/hooks/useCredits'
 import { useGenerate } from '@/hooks/useRun'
 import { useCreateSession } from '@/hooks/useSessions'
 import { readPromptDraft, savePromptDraft } from '@/lib/promptDraft'
@@ -15,6 +17,7 @@ export default function CreatePage() {
   const upload = useUploadAsset()
   const generate = useGenerate()
   const createSession = useCreateSession()
+  const catalog = useCreditCatalog()
 
   const openEditor = (assetId: string) =>
     createSession.mutate(
@@ -29,6 +32,7 @@ export default function CreatePage() {
       <GenerateForm
         defaultPrompt={readPromptDraft()}
         pending={generate.isPending}
+        costPerImage={catalog.data?.costs.generate}
         onSubmit={(input) =>
           generate.mutate(input, {
             onSuccess: (run) => {
@@ -39,7 +43,17 @@ export default function CreatePage() {
         }
       />
       {generate.isError && (
-        <p className="text-danger mt-2 text-sm">{errorMessage(generate.error)}</p>
+        <p className="text-danger mt-2 text-sm">
+          {errorMessage(generate.error)}
+          {generate.error instanceof ApiError && generate.error.status === 402 && (
+            <>
+              {' '}
+              <Link to="/credits" className="text-brand-strong underline-offset-2 hover:underline">
+                去充值
+              </Link>
+            </>
+          )}
+        </p>
       )}
 
       <section className="mt-10">

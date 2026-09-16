@@ -1,9 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 
 import { authApi, type Credentials, type User } from '@/api/auth'
 import { ApiError } from '@/api/client'
 
-const ME_KEY = ['auth', 'me']
+export const ME_KEY = ['auth', 'me'] as const
+
+export function refreshWallet(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: ME_KEY })
+  void queryClient.invalidateQueries({ queryKey: ['credits'] })
+}
 
 /** 会话状态以服务端 Cookie 为准，前端不持有令牌，只缓存当前用户。 */
 export function useCurrentUser() {

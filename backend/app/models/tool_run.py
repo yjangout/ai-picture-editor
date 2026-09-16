@@ -42,5 +42,6 @@ class ToolRun(UUIDBase):
     result: Mapped[dict] = mapped_column(JSONB, default=dict)
     error: Mapped[str | None] = mapped_column(Text, default=None)
     retries: Mapped[int] = mapped_column(default=0)
+    credits_charged: Mapped[int] = mapped_column(default=0)
     started_at: Mapped[datetime | None] = mapped_column(TIMESTAMPTZ, default=None)
     finished_at: Mapped[datetime | None] = mapped_column(TIMESTAMPTZ, default=None)

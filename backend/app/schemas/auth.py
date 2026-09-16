@@ -19,5 +19,7 @@ class Credentials(BaseModel):
 class UserOut(BaseModel):
     id: uuid.UUID
     username: str
+    role: str
+    credits: int
 
     model_config = {"from_attributes": True}
